@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Circuito Lógico: Acenda o LED</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #game-box { background: #1e293b; border: 3px solid #334155; padding: 30px; border-radius: 20px; text-align: center; width: 450px; }
+        
+        .circuit-path { margin: 20px auto; width: 80%; height: 10px; background: #334155; position: relative; border-radius: 5px; }
+        #energy-flow { height: 100%; width: 0%; background: #fbbf24; box-shadow: 0 0 15px #fbbf24; transition: 0.5s; border-radius: 5px; }
+        
+        .led { width: 40px; height: 40px; background: #475569; border-radius: 50%; margin: 10px auto; transition: 0.3s; border: 4px solid #1e293b; }
+        .led.active { background: #fbbf24; box-shadow: 0 0 25px #fbbf24; }
+
+        .equation-slot { font-size: 2rem; font-weight: bold; margin: 20px 0; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .missing { border-bottom: 4px dashed #fbbf24; min-width: 60px; color: #fbbf24; }
+
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        button { background: #334155; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+        button:hover { background: #475569; }
+
+        /* Modal */
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; }
+        .modal-card { background: #1e293b; padding: 40px; border-radius: 15px; border: 2px solid #fbbf24; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="game-box">
+    <div class="progress" id="step-info">Circuito 1 de 10</div>
+    <div class="led" id="main-led"></div>
+    <div class="circuit-path"><div id="energy-flow"></div></div>
+    
+    <div class="equation-slot" id="puzzle">
+        <span>10 + </span>
+        <span class="missing">?</span>
+        <span> = 15</span>
+    </div>
+
+    <div class="options" id="options-grid">
+        </div>
+</div>
+
+<div id="modal">
+    <div class="modal-card">
+        <h1>Circuito Completo! ⚡</h1>
+        <p id="final-msg"></p>
+        <button onclick="location.reload()" style="background:#fbbf24; color:#000; font-weight:bold; width: 100%;">REINICIAR</button>
+    </div>
+</div>
+
+<script>
+    let score = 0;
+    let currentStep = 1;
+    let correctAnswer = 0;
+
+    const puzzles = [
+        { q: "5 + [?] = 12", options: [7, 5, 8, 6], ans: 7 },
+        { q: "20 - [?] = 15", options: [10, 5, 2, 0], ans: 5 },
+        { q: "8 + 8 = [?]", options: [14, 15, 16, 18], ans: 16 },
+        { q: "12 - [?] = 4", options: [6, 7, 8, 9], ans: 8 },
+        { q: "[?] + 10 = 30", options: [10, 20, 15, 25], ans: 20 },
+        { q: "15 - 5 = [?]", options: [5, 10, 15, 20], ans: 10 },
+        { q: "3 + [?] = 11", options: [8, 9, 7, 6], ans: 8 },
+        { q: "[?] - 2 = 18", options: [16, 20, 22, 10], ans: 20 },
+        { q: "7 + 7 = [?]", options: [12, 13, 14, 15], ans: 14 },
+        { q: "100 - [?] = 50", options: [25, 40, 50, 60], ans: 50 }
+    ];
+
+    function loadPuzzle() {
+        if (currentStep > 10) {
+            showEnd();
+            return;
+        }
+
+        const data = puzzles[currentStep - 1];
+        document.getElementById('step-info').innerText = `Circuito ${currentStep} de 10`;
+        
+        // Formata a pergunta trocando [?] por um span visual
+        const formattedQ = data.q.replace("[?]", '<span class="missing">?</span>');
+        document.getElementById('puzzle').innerHTML = formattedQ;
+        
+        correctAnswer = data.ans;
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+        
+        data.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => check(opt);
+            grid.appendChild(btn);
+        });
+
+        // Reset LED e Fluxo
+        document.getElementById('main-led').classList.remove('active');
+        document.getElementById('energy-flow').style.width = "0%";
+    }
+
+    function check(choice) {
+        if (choice === correctAnswer) {
+            score++;
+            document.getElementById('main-led').classList.add('active');
+            document.getElementById('energy-flow').style.width = "100%";
+            
+            setTimeout(() => {
+                currentStep++;
+                loadPuzzle();
+            }, 800);
+        } else {
+            // Se errar, apenas pula para a próxima sem acender o LED
+            currentStep++;
+            loadPuzzle();
+        }
+    }
+
+    function showEnd() {
+        document.getElementById('modal').style.display = 'flex';
+        document.getElementById('final-msg').innerText = `Você energizou ${score} de 10 componentes do sistema!`;
+    }
+
+    loadPuzzle();
+</script>
+
+</body>
+</html>
